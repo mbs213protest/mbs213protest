@@ -69,11 +69,11 @@ body {
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 1;
-  background: rgba(238, 237, 232, 0.75);
+  background: rgba(238, 237, 232, 0.82);
   pointer-events: none;
 }
 @media (prefers-color-scheme: dark) {
-  #bg-overlay { background: rgba(26, 26, 24, 0.79); }
+  #bg-overlay { background: rgba(26, 26, 24, 0.85); }
 }
 header, .container, footer { position: relative; z-index: 2; }
 
@@ -350,8 +350,8 @@ footer {
    画像がない/読み込めない場合はカラータイルで代替表示します。
 */
 (function () {
-  const TILE_W = 640;   /* タイル1枚の幅 (px) */
-  const TILE_H = 480;   /* タイル1枚の高さ (px) */
+  const TILE_W = 320;   /* タイル1枚の幅 (px) */
+  const TILE_H = 240;   /* タイル1枚の高さ (px) */
   const SPEED_X = 0.4;  /* 1フレームあたりの横移動量 */
   const SPEED_Y = 0.3;  /* 1フレームあたりの縦移動量 */
 
@@ -378,27 +378,27 @@ footer {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    /* offsetを1周期内に収める（浮動小数点蓄積を防ぐ） */
-    const ox = ((offsetX % TILE_W) + TILE_W) % TILE_W;
-    const oy = ((offsetY % TILE_H) + TILE_H) % TILE_H;
+    const n = (ready && images.length > 0) ? images.length : FALLBACK_COLORS.length;
 
-    /* 画面左上より1タイル分外から描き始める */
-    const startX = -ox;
-    const startY = -oy;
+    /* オフセットを1タイル周期内に丸める */
+    const ox = offsetX - Math.floor(offsetX / TILE_W) * TILE_W;
+    const oy = offsetY - Math.floor(offsetY / TILE_H) * TILE_H;
 
-    for (let y = startY; y < H + TILE_H; y += TILE_H) {
-      /* 行インデックス（0起算、負にならないよう補正） */
-      const row = Math.round((y + oy) / TILE_H);
-      for (let x = startX; x < W + TILE_W; x += TILE_W) {
-        const col = Math.round((x + ox) / TILE_W);
-        /* 行・列から決定論的にインデックスを計算 */
-        const ti = ((row * 3 + col) % (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length) + (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length)) % (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length);
+    /* 左上タイルが常に画面の外から始まるようにする（余裕を2タイル分とる） */
+    const x0 = ox - TILE_W * 2;
+    const y0 = oy - TILE_H * 2;
+
+    let row = 0;
+    for (let y = y0; y < H + TILE_H; y += TILE_H, row++) {
+      let col = 0;
+      for (let x = x0; x < W + TILE_W; x += TILE_W, col++) {
+        const ti = ((row + col) % n + n) % n;
         if (ready && images.length > 0) {
-          ctx.drawImage(images[ti], x, y, TILE_W, TILE_H);
+          ctx.drawImage(images[ti], Math.round(x), Math.round(y), TILE_W, TILE_H);
         } else {
           ctx.globalAlpha = 0.35;
           ctx.fillStyle = FALLBACK_COLORS[ti];
-          ctx.fillRect(x, y, TILE_W - 2, TILE_H - 2);
+          ctx.fillRect(Math.round(x), Math.round(y), TILE_W - 2, TILE_H - 2);
           ctx.globalAlpha = 1;
         }
       }
