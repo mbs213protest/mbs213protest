@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBS報道問題に抗議する市民の記録</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ffffff;
+  --bg2: #f5f4f0;
+  --bg3: #eeede8;
+  --text: #1a1a18;
+  --text2: #5f5e5a;
+  --text3: #888780;
+  --border: rgba(0,0,0,0.12);
+  --border2: rgba(0,0,0,0.22);
+  --blue-bg: #E6F1FB;
+  --blue-text: #185FA5;
+  --purple-bg: #EEEDFE;
+  --purple-text: #534AB7;
+  --green-bg: #E1F5EE;
+  --green-text: #0F6E56;
+  --info-bg: #E6F1FB;
+  --info-text: #185FA5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a18;
+    --bg2: #2c2c2a;
+    --bg3: #3a3a38;
+    --text: #f0efea;
+    --text2: #b4b2a9;
+    --text3: #888780;
+    --border: rgba(255,255,255,0.12);
+    --border2: rgba(255,255,255,0.22);
+    --blue-bg: #0c447c;
+    --blue-text: #B5D4F4;
+    --purple-bg: #3C3489;
+    --purple-text: #CECBF6;
+    --green-bg: #085041;
+    --green-text: #9FE1CB;
+    --info-bg: #0c447c;
+    --info-text: #B5D4F4;
+  }
+}
+
+body {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background: var(--bg3);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+  position: relative;
+}
+
+/* ── 背景スクロール画像 ── */
+#bg-scroll {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#bg-scroll-inner {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  animation: bgscroll 40s linear infinite;
+}
+#bg-scroll-inner img {
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+#bg-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  background: rgba(238, 237, 232, 0.82);
+  pointer-events: none;
+}
+@media (prefers-color-scheme: dark) {
+  #bg-overlay { background: rgba(26, 26, 24, 0.85); }
+}
+@keyframes bgscroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+header, .container, footer { position: relative; z-index: 2; }
+
+a { color: var(--blue-text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+
+/* ── ヘッダー ── */
+header {
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+header .inner { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
+.site-title { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.site-sub { font-size: 13px; color: var(--text2); margin-bottom: 0.75rem; }
+nav { display: flex; gap: 1.25rem; }
+nav a {
+  font-size: 14px;
+  color: var(--text2);
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid transparent;
+}
+nav a:hover { color: var(--text); border-color: var(--border2); text-decoration: none; }
+
+/* ── セクション共通 ── */
+section { margin-bottom: 3rem; }
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  padding-bottom: 0.5rem;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 1.25rem;
+}
+
+/* ── 問題セクション ── */
+.issue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.issue-card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+.issue-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-radius: 6px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
+}
+.issue-card h3 { font-size: 15px; font-weight: 500; margin-bottom: 0.5rem; }
+.issue-card p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.note { font-size: 12px; color: var(--text3); margin-top: 0.5rem; font-style: italic; }
+
+/* ── カレンダーセクション ── */
+.cal-meta { font-size: 13px; color: var(--text2); margin-bottom: 1rem; }
+.legend { display: flex; gap: 16px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-fri { background: #7F77DD; }
+.dot-day { background: #378ADD; }
+
+.months { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 14px; }
+.month-card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.month-title { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dow-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-align: center;
+  padding: 2px 0 5px;
+}
+.day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: default;
+  color: var(--text3);
+  opacity: 0.4;
+  position: relative;
+}
+.day-cell.active {
+  cursor: pointer;
+  opacity: 1;
+  font-weight: 500;
+  transition: opacity 0.12s;
+}
+.day-cell.active:hover { opacity: 0.7; }
+.day-cell.is-fri { background: var(--purple-bg); color: var(--purple-text); }
+.day-cell.is-day { background: var(--blue-bg); color: var(--blue-text); }
+
+/* ── フッター ── */
+footer {
+  border-top: 0.5px solid var(--border);
+  padding-top: 1.25rem;
+  font-size: 13px;
+  color: var(--text3);
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- 背景スクロール -->
+<div id="bg-scroll"><div id="bg-scroll-inner"></div></div>
+<div id="bg-overlay"></div>
+
+<header>
+  <div class="inner">
+    <div class="site-title">MBS報道問題に抗議する市民の記録</div>
+    <div class="site-sub">毎日放送（MBS）の報道姿勢への抗議活動・市民記録サイト</div>
+    <nav>
+      <a href="#issues">報道問題について</a>
+      <a href="#calendar">抗議活動の記録</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── 報道問題セクション ── -->
+  <section id="issues">
+    <h2 class="section-title">MBS報道問題について</h2>
+    <div class="issue-grid">
+      <div class="issue-card">
+        <div class="issue-tag">問題の背景</div>
+        <h3>何が起きているのか</h3>
+        <p>毎日放送（MBS）は関西の主要テレビ局のひとつですが、近年その報道姿勢に対して市民から継続的な批判が寄せられています。特定の政治的・社会的立場に偏った報道、重要な事実の不報道、および取材倫理に関わる問題が指摘されています。</p>
+        <p class="note">※具体的な事例・日時・放送内容を追記してください</p>
+      </div>
+      <div class="issue-card">
+        <div class="issue-tag">具体的な問題点</div>
+        <h3>指摘されている事項</h3>
+        <p>・特定議題の報道量・論調の偏り<br>
+        ・市民活動・抗議活動に関する報道の欠如または歪曲<br>
+        ・当事者への取材不足・一方的な情報発信</p>
+        <p class="note">※具体的な事例を追記してください</p>
+      </div>
+      <div class="issue-card">
+        <div class="issue-tag">私たちの要求</div>
+        <h3>MBSへの要求事項</h3>
+        <p>公正・中立な報道の実施、および市民の抗議活動に対する誠実な対応を求めます。</p>
+        <p class="note">※要求事項を具体的に記載してください</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── カレンダーセクション ── -->
+  <section id="calendar">
+    <h2 class="section-title">抗議活動の記録</h2>
+    <p class="cal-meta">2026年2月14日〜 ／ 昼：毎日、夜：金曜のみ ／ 日付をクリックするとX（Twitter）検索へ</p>
+    <div class="legend">
+      <div class="leg-item"><div class="dot dot-fri"></div>金曜日（昼＋夜 OR検索）</div>
+      <div class="leg-item"><div class="dot dot-day"></div>その他の日（昼のみ）</div>
+    </div>
+    <div class="months" id="months"></div>
+  </section>
+
+</div>
+
+<footer>
+  <p>このサイトは市民有志による自主的な記録です。</p>
+</footer>
+
+<script>
+(function() {
+  const start = new Date(2026, 1, 14);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const end = today;
+
+  const youbi = ['日','月','火','水','木','金','土'];
+
+  function orUrl(mmdd, isFri) {
+    const t1 = '#' + mmdd + 'MBSプロテスト';
+    if (!isFri) return 'https://x.com/search?q=' + encodeURIComponent(t1) + '&f=live';
+    const t2 = '#' + mmdd + 'MBS夜プロテスト';
+    return 'https://x.com/search?q=' + encodeURIComponent(t1 + ' OR ' + t2) + '&f=live';
+  }
+
+  const months = [];
+  let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cur <= endMonth) {
+    months.push(new Date(cur));
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  const container = document.getElementById('months');
+
+  months.forEach(function(m) {
+    const year = m.getFullYear();
+    const month = m.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDow = new Date(year, month, 1).getDay();
+
+    const card = document.createElement('div');
+    card.className = 'month-card';
+
+    const title = document.createElement('div');
+    title.className = 'month-title';
+    title.textContent = year + '年' + (month + 1) + '月';
+    card.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'cal-grid';
+
+    youbi.forEach(function(d) {
+      const lbl = document.createElement('div');
+      lbl.className = 'dow-label';
+      lbl.textContent = d;
+      grid.appendChild(lbl);
+    });
+
+    for (let i = 0; i < firstDow; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'day-cell';
+      grid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      const cell = document.createElement('div');
+      const inRange = d >= start && d <= end;
+
+      if (inRange) {
+        const mm = String(month + 1).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        const mmdd = mm + dd;
+        const isFri = d.getDay() === 5;
+        cell.className = 'day-cell active ' + (isFri ? 'is-fri' : 'is-day');
+        cell.textContent = day;
+        const url = orUrl(mmdd, isFri);
+        cell.title = isFri
+          ? (month+1) + '/' + day + '（金）昼＋夜 OR検索'
+          : (month+1) + '/' + day + ' 昼タグ検索';
+        cell.addEventListener('click', function() { window.open(url, '_blank'); });
+      } else {
+        cell.className = 'day-cell';
+        cell.textContent = day;
+      }
+      grid.appendChild(cell);
+    }
+
+    card.appendChild(grid);
+    container.appendChild(card);
+  });
+})();
+</script>
+<script>
+/* ── 背景画像スクロール ──
+   images/ フォルダに画像ファイルを置き、下の配列にファイル名を追記してください。
+   例: ['images/demo01.jpg', 'images/demo02.jpg', ...]
+   画像がない間はプレースホルダーの色帯を表示します。
+*/
+(function() {
+  const FILES = [
+    /* ここに画像パスを追加 */
+    /* 例: 'images/demo01.jpg', */
+  ];
+
+  const inner = document.getElementById('bg-scroll-inner');
+
+  function makePlaceholders() {
+    const colors = ['#D3D1C7','#B4B2A9','#CECBF6','#B5D4F4','#9FE1CB','#F5C4B3','#C0DD97'];
+    const count = 10;
+    for (let i = 0; i < count * 2; i++) {
+      const div = document.createElement('div');
+      div.style.cssText = 'height:100%;width:180px;flex-shrink:0;background:' + colors[i % colors.length] + ';opacity:0.35;';
+      inner.appendChild(div);
+    }
+  }
+
+  if (FILES.length === 0) {
+    makePlaceholders();
+  } else {
+    /* 画像を2セット並べてシームレスループ */
+    [FILES, FILES].forEach(function(set) {
+      set.forEach(function(src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.draggable = false;
+        inner.appendChild(img);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
