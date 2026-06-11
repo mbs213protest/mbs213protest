@@ -69,11 +69,11 @@ body {
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 1;
-  background: rgba(238, 237, 232, 0.82);
+  background: rgba(238, 237, 232, 0.75);
   pointer-events: none;
 }
 @media (prefers-color-scheme: dark) {
-  #bg-overlay { background: rgba(26, 26, 24, 0.85); }
+  #bg-overlay { background: rgba(26, 26, 24, 0.79); }
 }
 header, .container, footer { position: relative; z-index: 2; }
 
@@ -378,23 +378,29 @@ footer {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    /* タイルが画面外から始まるよう開始位置を計算 */
-    const startX = -(offsetX % TILE_W);
-    const startY = -(offsetY % TILE_H);
+    /* offsetを1周期内に収める（浮動小数点蓄積を防ぐ） */
+    const ox = ((offsetX % TILE_W) + TILE_W) % TILE_W;
+    const oy = ((offsetY % TILE_H) + TILE_H) % TILE_H;
 
-    let ti = 0;
-    for (let y = startY - TILE_H; y < H + TILE_H; y += TILE_H) {
-      for (let x = startX - TILE_W; x < W + TILE_W; x += TILE_W) {
+    /* 画面左上より1タイル分外から描き始める */
+    const startX = -ox;
+    const startY = -oy;
+
+    for (let y = startY; y < H + TILE_H; y += TILE_H) {
+      /* 行インデックス（0起算、負にならないよう補正） */
+      const row = Math.round((y + oy) / TILE_H);
+      for (let x = startX; x < W + TILE_W; x += TILE_W) {
+        const col = Math.round((x + ox) / TILE_W);
+        /* 行・列から決定論的にインデックスを計算 */
+        const ti = ((row * 3 + col) % (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length) + (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length)) % (ready && images.length > 0 ? images.length : FALLBACK_COLORS.length);
         if (ready && images.length > 0) {
-          const img = images[ti % images.length];
-          ctx.drawImage(img, x, y, TILE_W, TILE_H);
+          ctx.drawImage(images[ti], x, y, TILE_W, TILE_H);
         } else {
-          ctx.fillStyle = FALLBACK_COLORS[ti % FALLBACK_COLORS.length];
           ctx.globalAlpha = 0.35;
+          ctx.fillStyle = FALLBACK_COLORS[ti];
           ctx.fillRect(x, y, TILE_W - 2, TILE_H - 2);
           ctx.globalAlpha = 1;
         }
-        ti++;
       }
     }
   }
