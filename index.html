@@ -266,9 +266,9 @@ footer {
 
   function orUrl(mmdd, isFri) {
     const t1 = '#' + mmdd + 'MBSプロテスト';
-    if (!isFri) return 'https://x.com/search?q=' + encodeURIComponent(t1) + '&f=live';
+    if (!isFri) return 'https://mobile.x.com/search?q=' + encodeURIComponent(t1) + '&f=live';
     const t2 = '#' + mmdd + 'MBS夜プロテスト';
-    return 'https://x.com/search?q=' + encodeURIComponent(t1 + ' OR ' + t2) + '&f=live';
+    return 'https://mobile.x.com/search?q=' + encodeURIComponent(t1 + ' OR ' + t2) + '&f=live';
   }
 
   const months = [];
