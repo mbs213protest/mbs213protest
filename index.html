@@ -56,26 +56,13 @@ body {
   position: relative;
 }
 
-/* ── 背景スクロール画像 ── */
-#bg-scroll {
+/* ── 背景canvas ── */
+#bg-canvas {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: 0;
-  overflow: hidden;
   pointer-events: none;
-}
-#bg-scroll-inner {
-  display: flex;
-  height: 100%;
-  will-change: transform;
-  animation: bgscroll 40s linear infinite;
-}
-#bg-scroll-inner img {
-  height: 100%;
-  width: auto;
-  object-fit: cover;
-  flex-shrink: 0;
 }
 #bg-overlay {
   position: fixed;
@@ -87,10 +74,6 @@ body {
 }
 @media (prefers-color-scheme: dark) {
   #bg-overlay { background: rgba(26, 26, 24, 0.85); }
-}
-@keyframes bgscroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
 header, .container, footer { position: relative; z-index: 2; }
 
@@ -211,8 +194,8 @@ footer {
 </head>
 <body>
 
-<!-- 背景スクロール -->
-<div id="bg-scroll"><div id="bg-scroll-inner"></div></div>
+<!-- 背景canvas -->
+<canvas id="bg-canvas"></canvas>
 <div id="bg-overlay"></div>
 
 <header>
@@ -358,51 +341,96 @@ footer {
 })();
 </script>
 <script>
-/* ── 背景画像スクロール ──
-   images/ フォルダに画像ファイルを置き、下の配列にファイル名を追記してください。
-   例: ['images/demo01.jpg', 'images/demo02.jpg', ...]
-   画像がない間はプレースホルダーの色帯を表示します。
+/* ── 背景画像 斜めスクロール（左上→右下）──
+   GitHub Pages 運用:
+     1. /images/ フォルダに jpg/png を入れる
+     2. generate_images_json.py を実行 → images.json が生成される
+     3. index.html と images.json と images/ フォルダをまとめてリポジトリへ push
+
+   画像がない/読み込めない場合はカラータイルで代替表示します。
 */
-(function() {
-  const FILES = [
-    /* ここに画像パスを追加 */
-    /* 例: 'images/demo01.jpg', */
-	'images/HB42orta0AEA4N_.jpg',
-	'images/HBwfpIObUAAtdma.jpg',
-	'images/HCLGpv-bwAA0eTw.jpg',
-	'images/HCNW4ChbEAI35cZ.jpg',
-	'images/HDSSEOgagAAA2Re.jpg',
-	'images/HEA3HgfbEAATK52.jpg',
-	'images/HHIhTLibsAAiiOQ.jpg',
-	'images/HHNYUCpa8AASztX.jpg'
-  ];
+(function () {
+  const TILE_W = 320;   /* タイル1枚の幅 (px) */
+  const TILE_H = 240;   /* タイル1枚の高さ (px) */
+  const SPEED_X = 0.4;  /* 1フレームあたりの横移動量 */
+  const SPEED_Y = 0.3;  /* 1フレームあたりの縦移動量 */
 
-  const inner = document.getElementById('bg-scroll-inner');
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
 
-  function makePlaceholders() {
-    const colors = ['#D3D1C7','#B4B2A9','#CECBF6','#B5D4F4','#9FE1CB','#F5C4B3','#C0DD97'];
-    const count = 10;
-    for (let i = 0; i < count * 2; i++) {
-      const div = document.createElement('div');
-      div.style.cssText = 'height:100%;width:180px;flex-shrink:0;background:' + colors[i % colors.length] + ';opacity:0.35;';
-      inner.appendChild(div);
+  /* カラーフォールバック用 */
+  const FALLBACK_COLORS = ['#D3D1C7','#B4B2A9','#CECBF6','#B5D4F4','#9FE1CB','#F5C4B3','#C0DD97','#F5DEB3','#C8E6C9'];
+
+  let images = [];   /* ロード済み Image オブジェクトの配列 */
+  let ready = false;
+  let offsetX = 0, offsetY = 0;
+
+  /* canvas サイズをウィンドウに合わせる */
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* タイルを画面全体に敷き詰めて描画 */
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    /* タイルが画面外から始まるよう開始位置を計算 */
+    const startX = -(offsetX % TILE_W);
+    const startY = -(offsetY % TILE_H);
+
+    let ti = 0;
+    for (let y = startY - TILE_H; y < H + TILE_H; y += TILE_H) {
+      for (let x = startX - TILE_W; x < W + TILE_W; x += TILE_W) {
+        if (ready && images.length > 0) {
+          const img = images[ti % images.length];
+          ctx.drawImage(img, x, y, TILE_W, TILE_H);
+        } else {
+          ctx.fillStyle = FALLBACK_COLORS[ti % FALLBACK_COLORS.length];
+          ctx.globalAlpha = 0.35;
+          ctx.fillRect(x, y, TILE_W - 2, TILE_H - 2);
+          ctx.globalAlpha = 1;
+        }
+        ti++;
+      }
     }
   }
 
-  if (FILES.length === 0) {
-    makePlaceholders();
-  } else {
-    /* 画像を2セット並べてシームレスループ */
-    [FILES, FILES].forEach(function(set) {
-      set.forEach(function(src) {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = '';
-        img.draggable = false;
-        inner.appendChild(img);
-      });
-    });
+  function tick() {
+    offsetX += SPEED_X;
+    offsetY += SPEED_Y;
+    draw();
+    requestAnimationFrame(tick);
   }
+
+  /* images.json を fetch して画像をロード */
+  fetch('images.json')
+    .then(function (r) { return r.json(); })
+    .then(function (list) {
+      if (!Array.isArray(list) || list.length === 0) { tick(); return; }
+      let loaded = 0;
+      list.forEach(function (src) {
+        const img = new Image();
+        img.onload = function () {
+          images.push(img);
+          loaded++;
+          if (loaded === list.length) { ready = true; }
+        };
+        img.onerror = function () {
+          loaded++;
+          if (loaded === list.length && images.length > 0) { ready = true; }
+        };
+        img.src = src;
+      });
+      tick();
+    })
+    .catch(function () {
+      /* images.json がなければカラータイルで動かす */
+      tick();
+    });
 })();
 </script>
 </body>
