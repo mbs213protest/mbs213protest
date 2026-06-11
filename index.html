@@ -216,24 +216,23 @@ footer {
     <h2 class="section-title">MBS報道問題について</h2>
     <div class="issue-grid">
       <div class="issue-card">
-        <div class="issue-tag">問題の背景</div>
-        <h3>何が起きているのか</h3>
-        <p>毎日放送（MBS）は関西の主要テレビ局のひとつですが、近年その報道姿勢に対して市民から継続的な批判が寄せられています。特定の政治的・社会的立場に偏った報道、重要な事実の不報道、および取材倫理に関わる問題が指摘されています。</p>
-        <p class="note">※具体的な事例・日時・放送内容を追記してください</p>
+        <div class="issue-tag">MBS 2月13日報道について</div>
+        <p>MBSは、二名の市民が暴行を行ったとする報道を行いました。</p>
+        <p>しかしそれは事実に基づかない情報で、MBSはその後二度の訂正放送を行いました。</p>
+        <p>私たちは、この報道について依然として十分な検証と説明が行われていないと考えています。</p>
       </div>
       <div class="issue-card">
-        <div class="issue-tag">具体的な問題点</div>
-        <h3>指摘されている事項</h3>
-        <p>・特定議題の報道量・論調の偏り<br>
-        ・市民活動・抗議活動に関する報道の欠如または歪曲<br>
-        ・当事者への取材不足・一方的な情報発信</p>
-        <p class="note">※具体的な事例を追記してください</p>
+        <div class="issue-tag">私たちが問題と考えること</div>
+        <h3>① 事実と異なる報道が行われたこと</h3>
+        <p>MBSは訂正放送を行い、当初の報道内容に誤りがあったことを認めました。しかし事実に基づかない情報をニュースにしたことの原因や経緯は明らかにされませんでした。</p>
+        <h3 style="margin-top:0.75rem">② 市民に被害が生じたこと</h3>
+        <p>加害者と報じられた市民に対し、多数の誹謗中傷が発生し、その影響は現在も続いています。</p>
       </div>
       <div class="issue-card">
-        <div class="issue-tag">私たちの要求</div>
-        <h3>MBSへの要求事項</h3>
-        <p>公正・中立な報道の実施、および市民の抗議活動に対する誠実な対応を求めます。</p>
-        <p class="note">※要求事項を具体的に記載してください</p>
+        <div class="issue-tag">私たちが求めること</div>
+        <p>① 報道に至った経緯の検証と公表</p>
+        <p>② 具体的な再発防止策の提示</p>
+        <p>③ 報じられた方々への適切な対応と名誉回復</p>
       </div>
     </div>
   </section>
@@ -241,7 +240,8 @@ footer {
   <!-- ── カレンダーセクション ── -->
   <section id="calendar">
     <h2 class="section-title">抗議活動の記録</h2>
-    <p class="cal-meta">2026年2月14日〜 ／ 昼：毎日、夜：金曜のみ ／ 日付をクリックするとX（Twitter）検索へ</p>
+    <p class="cal-meta">2026年2月14日〜 ／ 昼：毎日、夜：金曜のみ ／ 日付をクリックするとX（Twitter）検索へ<br>
+    検索結果が表示されない場合は、画面上部の「最新」タブに切り替えてご覧ください。</p>
     <div class="legend">
       <div class="leg-item"><div class="dot dot-fri"></div>金曜日（昼＋夜 OR検索）</div>
       <div class="leg-item"><div class="dot dot-day"></div>その他の日（昼のみ）</div>
@@ -266,9 +266,9 @@ footer {
 
   function orUrl(mmdd, isFri) {
     const t1 = '#' + mmdd + 'MBSプロテスト';
-    if (!isFri) return 'https://mobile.x.com/search?q=' + encodeURIComponent(t1) + '&f=live';
+    if (!isFri) return 'https://x.com/search?q=' + encodeURIComponent(t1) + '&f=live';
     const t2 = '#' + mmdd + 'MBS夜プロテスト';
-    return 'https://mobile.x.com/search?q=' + encodeURIComponent(t1 + ' OR ' + t2) + '&f=live';
+    return 'https://x.com/search?q=' + encodeURIComponent(t1 + ' OR ' + t2) + '&f=live';
   }
 
   const months = [];
