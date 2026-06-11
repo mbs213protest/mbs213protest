@@ -346,26 +346,26 @@ footer {
      1. /images/ フォルダに jpg/png を入れる
      2. generate_images_json.py を実行 → images.json が生成される
      3. index.html と images.json と images/ フォルダをまとめてリポジトリへ push
-
-   画像がない/読み込めない場合はカラータイルで代替表示します。
 */
 (function () {
-  const TILE_W = 320;   /* タイル1枚の幅 (px) */
-  const TILE_H = 240;   /* タイル1枚の高さ (px) */
-  const SPEED_X = 0.4;  /* 1フレームあたりの横移動量 */
-  const SPEED_Y = 0.3;  /* 1フレームあたりの縦移動量 */
+  const TILE_W  = 320;  /* 1枚あたりの表示幅 px */
+  const TILE_H  = 240;  /* 1枚あたりの表示高さ px */
+  const SPEED_X = 0.4;  /* 横方向 px/frame */
+  const SPEED_Y = 0.3;  /* 縦方向 px/frame */
+  /* スプライトシートの列数・行数（これの倍数でrepeatするのでジャンプしない） */
+  const COLS = 4;
+  const ROWS = 3;
+
+  const FALLBACK_COLORS = ['#D3D1C7','#B4B2A9','#CECBF6','#B5D4F4','#9FE1CB','#F5C4B3','#C0DD97','#F5DEB3','#C8E6C9','#F9C0C0','#C0D9F9','#D4C0F9'];
 
   const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx    = canvas.getContext('2d');
 
-  /* カラーフォールバック用 */
-  const FALLBACK_COLORS = ['#D3D1C7','#B4B2A9','#CECBF6','#B5D4F4','#9FE1CB','#F5C4B3','#C0DD97','#F5DEB3','#C8E6C9'];
+  let pattern = null;
+  let sheetW  = TILE_W * COLS;
+  let sheetH  = TILE_H * ROWS;
+  let ox = 0, oy = 0;
 
-  let images = [];   /* ロード済み Image オブジェクトの配列 */
-  let ready = false;
-  let offsetX = 0, offsetY = 0;
-
-  /* canvas サイズをウィンドウに合わせる */
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -373,70 +373,70 @@ footer {
   window.addEventListener('resize', resize);
   resize();
 
-  /* タイルを画面全体に敷き詰めて描画 */
-  function draw() {
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    const n = (ready && images.length > 0) ? images.length : FALLBACK_COLORS.length;
-
-    /* オフセットを1タイル周期内に丸める */
-    const ox = offsetX - Math.floor(offsetX / TILE_W) * TILE_W;
-    const oy = offsetY - Math.floor(offsetY / TILE_H) * TILE_H;
-
-    /* 左上タイルが常に画面の外から始まるようにする（余裕を2タイル分とる） */
-    const x0 = ox - TILE_W * 2;
-    const y0 = oy - TILE_H * 2;
-
-    let row = 0;
-    for (let y = y0; y < H + TILE_H; y += TILE_H, row++) {
-      let col = 0;
-      for (let x = x0; x < W + TILE_W; x += TILE_W, col++) {
-        const ti = ((row + col) % n + n) % n;
-        if (ready && images.length > 0) {
-          ctx.drawImage(images[ti], Math.round(x), Math.round(y), TILE_W, TILE_H);
+  /* COLS×ROWS グリッドのスプライトシートを作りパターン化 */
+  function buildPattern(tiles) {
+    const off  = document.createElement('canvas');
+    off.width  = sheetW;
+    off.height = sheetH;
+    const octx = off.getContext('2d');
+    let idx = 0;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const tile = tiles[idx % tiles.length];
+        if (tile instanceof HTMLImageElement) {
+          octx.drawImage(tile, c * TILE_W, r * TILE_H, TILE_W, TILE_H);
         } else {
-          ctx.globalAlpha = 0.35;
-          ctx.fillStyle = FALLBACK_COLORS[ti];
-          ctx.fillRect(Math.round(x), Math.round(y), TILE_W - 2, TILE_H - 2);
-          ctx.globalAlpha = 1;
+          octx.fillStyle = tile;
+          octx.globalAlpha = 0.4;
+          octx.fillRect(c * TILE_W, r * TILE_H, TILE_W - 2, TILE_H - 2);
+          octx.globalAlpha = 1;
         }
+        idx++;
       }
     }
-  }
-
-  function tick() {
-    offsetX += SPEED_X;
-    offsetY += SPEED_Y;
-    draw();
+    pattern = ctx.createPattern(off, 'repeat');
     requestAnimationFrame(tick);
   }
 
-  /* images.json を fetch して画像をロード */
+  function tick() {
+    ox += SPEED_X;
+    oy += SPEED_Y;
+    /* シート1周期内に収める → ジャンプしない */
+    if (ox >= sheetW) ox -= sheetW;
+    if (oy >= sheetH) oy -= sheetH;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(-Math.round(ox), -Math.round(oy));
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, canvas.width + sheetW, canvas.height + sheetH);
+    ctx.restore();
+
+    requestAnimationFrame(tick);
+  }
+
   fetch('images.json')
     .then(function (r) { return r.json(); })
     .then(function (list) {
-      if (!Array.isArray(list) || list.length === 0) { tick(); return; }
-      let loaded = 0;
+      if (!Array.isArray(list) || list.length === 0) {
+        buildPattern(FALLBACK_COLORS); return;
+      }
+      const imgs = [];
+      let done = 0;
       list.forEach(function (src) {
         const img = new Image();
-        img.onload = function () {
-          images.push(img);
-          loaded++;
-          if (loaded === list.length) { ready = true; }
+        const finish = function () {
+          done++;
+          if (done === list.length) {
+            buildPattern(imgs.length > 0 ? imgs : FALLBACK_COLORS);
+          }
         };
-        img.onerror = function () {
-          loaded++;
-          if (loaded === list.length && images.length > 0) { ready = true; }
-        };
+        img.onload  = function () { imgs.push(img); finish(); };
+        img.onerror = finish;
         img.src = src;
       });
-      tick();
     })
-    .catch(function () {
-      /* images.json がなければカラータイルで動かす */
-      tick();
-    });
+    .catch(function () { buildPattern(FALLBACK_COLORS); });
 })();
 </script>
 </body>
